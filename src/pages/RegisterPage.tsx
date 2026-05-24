@@ -1,14 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { AuthLink, AuthShell } from '@/components/auth/AuthShell'
-import { PasswordStrength } from '@/components/auth/PasswordStrength'
+import { PasswordField } from '@/components/auth/PasswordField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { getErrorMessage } from '@/lib/errors'
+import { useSecureSubmit } from '@/hooks/useSecureSubmit'
+import { AUTH_MESSAGES, getAuthErrorMessage } from '@/lib/security/auth-messages'
 import { notify } from '@/lib/toast'
 import {
   registerSchema,
@@ -18,7 +18,7 @@ import { authService } from '@/services/auth.service'
 
 export function RegisterPage() {
   const navigate = useNavigate()
-  const [submitting, setSubmitting] = useState(false)
+  const { isPending, run } = useSecureSubmit()
 
   const {
     register,
@@ -33,25 +33,27 @@ export function RegisterPage() {
       password: '',
       confirm_password: '',
     },
+    mode: 'onChange',
   })
 
   const password = watch('password')
+  const passwordField = register('password')
+  const confirmField = register('confirm_password')
 
   const onSubmit = async (values: RegisterFormValues) => {
-    setSubmitting(true)
-    try {
-      await authService.register({
-        full_name: values.full_name,
-        email: values.email,
-        password: values.password,
-      })
-      notify.success('Cuenta creada', 'Ya puedes iniciar sesión con tus credenciales')
-      void navigate('/login', { replace: true })
-    } catch (err) {
-      notify.error('No se pudo registrar', getErrorMessage(err, 'Intenta de nuevo'))
-    } finally {
-      setSubmitting(false)
-    }
+    await run(async () => {
+      try {
+        await authService.register({
+          full_name: values.full_name,
+          email: values.email,
+          password: values.password,
+        })
+        notify.success('Cuenta creada', AUTH_MESSAGES.registerSuccess)
+        void navigate('/login', { replace: true })
+      } catch (err) {
+        notify.error('Registro no completado', getAuthErrorMessage(err, 'register'))
+      }
+    })
   }
 
   return (
@@ -64,13 +66,14 @@ export function RegisterPage() {
         </>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-2">
           <Label htmlFor="full_name">Nombre completo</Label>
           <Input
             id="full_name"
             placeholder="Ana García"
             autoComplete="name"
+            disabled={isPending}
             {...register('full_name')}
           />
           {errors.full_name && (
@@ -85,6 +88,7 @@ export function RegisterPage() {
             type="email"
             placeholder="tu@empresa.com"
             autoComplete="email"
+            disabled={isPending}
             {...register('email')}
           />
           {errors.email && (
@@ -92,37 +96,32 @@ export function RegisterPage() {
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">Contraseña</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            autoComplete="new-password"
-            {...register('password')}
-          />
-          <PasswordStrength password={password} />
-          {errors.password && (
-            <p className="text-xs text-destructive">{errors.password.message}</p>
-          )}
-        </div>
+        <PasswordField
+          id="password"
+          label="Contraseña"
+          autoComplete="new-password"
+          showRequirements
+          error={errors.password?.message}
+          registrationProps={{
+            ...passwordField,
+            value: password,
+            disabled: isPending,
+          }}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="confirm_password">Confirmar contraseña</Label>
-          <Input
-            id="confirm_password"
-            type="password"
-            placeholder="••••••••"
-            autoComplete="new-password"
-            {...register('confirm_password')}
-          />
-          {errors.confirm_password && (
-            <p className="text-xs text-destructive">{errors.confirm_password.message}</p>
-          )}
-        </div>
+        <PasswordField
+          id="confirm_password"
+          label="Confirmar contraseña"
+          autoComplete="new-password"
+          error={errors.confirm_password?.message}
+          registrationProps={{
+            ...confirmField,
+            disabled: isPending,
+          }}
+        />
 
-        <Button type="submit" className="w-full" disabled={submitting}>
-          {submitting ? (
+        <Button type="submit" className="w-full" disabled={isPending} aria-busy={isPending}>
+          {isPending ? (
             <>
               <Loader2 className="animate-spin" />
               Creando cuenta...

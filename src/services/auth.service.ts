@@ -1,3 +1,8 @@
+/**
+ * Auth API layer — credentials travel over HTTPS (TLS).
+ * Passwords are sent once in the request body; never stored or logged client-side.
+ * @see @/lib/security/transport
+ */
 import { apiClient } from '@/services/api-client'
 import type { TokenResponse, UserCreate, UserLogin, UserRead } from '@/types/api.types'
 

@@ -8,18 +8,19 @@ interface Props {
 
 interface State {
   hasError: boolean
-  message?: string
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false }
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, message: error.message }
+  static getDerivedStateFromError(): State {
+    return { hasError: true }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('ErrorBoundary:', error, info)
+    if (import.meta.env.DEV) {
+      console.error('[ErrorBoundary]', error.name, info.componentStack)
+    }
   }
 
   render() {
@@ -31,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
           </div>
           <h2 className="text-xl font-semibold">Algo salió mal</h2>
           <p className="max-w-md text-sm text-muted-foreground">
-            {this.state.message ?? 'Ocurrió un error inesperado en la aplicación.'}
+            Ocurrió un error inesperado. Recarga la aplicación para continuar.
           </p>
           <Button onClick={() => window.location.reload()}>Recargar aplicación</Button>
         </div>

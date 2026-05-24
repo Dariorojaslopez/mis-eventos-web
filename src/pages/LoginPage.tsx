@@ -1,13 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AuthLink, AuthShell } from '@/components/auth/AuthShell'
+import { PasswordField } from '@/components/auth/PasswordField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { getErrorMessage } from '@/lib/errors'
+import { useSecureSubmit } from '@/hooks/useSecureSubmit'
+import { AUTH_MESSAGES } from '@/lib/security/auth-messages'
 import { notify } from '@/lib/toast'
 import { loginSchema, type LoginFormValues } from '@/modules/auth/schemas/login.schema'
 import { useAuthStore } from '@/store/auth.store'
@@ -16,8 +17,8 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const login = useAuthStore((s) => s.login)
-  const isLoading = useAuthStore((s) => s.isLoading)
-  const [submitting, setSubmitting] = useState(false)
+  const storeLoading = useAuthStore((s) => s.isLoading)
+  const { isPending, run } = useSecureSubmit()
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/'
 
@@ -28,22 +29,24 @@ export function LoginPage() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
+    mode: 'onBlur',
   })
 
+  const passwordField = register('password')
+
   const onSubmit = async (values: LoginFormValues) => {
-    setSubmitting(true)
-    try {
-      await login(values)
-      notify.success('Bienvenido de nuevo')
-      void navigate(from, { replace: true })
-    } catch (err) {
-      notify.error('Acceso denegado', getErrorMessage(err, 'Credenciales inválidas'))
-    } finally {
-      setSubmitting(false)
-    }
+    await run(async () => {
+      try {
+        await login(values)
+        notify.success('Bienvenido de nuevo')
+        void navigate(from, { replace: true })
+      } catch {
+        notify.error('Acceso denegado', AUTH_MESSAGES.loginFailed)
+      }
+    })
   }
 
-  const busy = submitting || isLoading
+  const busy = isPending || storeLoading
 
   return (
     <AuthShell
@@ -55,7 +58,7 @@ export function LoginPage() {
         </>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -63,6 +66,7 @@ export function LoginPage() {
             type="email"
             placeholder="tu@empresa.com"
             autoComplete="email"
+            disabled={busy}
             {...register('email')}
           />
           {errors.email && (
@@ -70,21 +74,18 @@ export function LoginPage() {
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">Contraseña</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            autoComplete="current-password"
-            {...register('password')}
-          />
-          {errors.password && (
-            <p className="text-xs text-destructive">{errors.password.message}</p>
-          )}
-        </div>
+        <PasswordField
+          id="password"
+          label="Contraseña"
+          autoComplete="current-password"
+          error={errors.password?.message}
+          registrationProps={{
+            ...passwordField,
+            disabled: busy,
+          }}
+        />
 
-        <Button type="submit" className="w-full" disabled={busy}>
+        <Button type="submit" className="w-full" disabled={busy} aria-busy={busy}>
           {busy ? (
             <>
               <Loader2 className="animate-spin" />

@@ -3,6 +3,11 @@ import { persist } from 'zustand/middleware'
 import { authService } from '@/services/auth.service'
 import type { UserLogin, UserRead } from '@/types/api.types'
 
+/**
+ * JWT persistence — token stored in localStorage (XSS surface).
+ * Passwords are NEVER stored here; only access_token after successful login.
+ * @see @/lib/security/transport
+ */
 const AUTH_STORAGE_KEY = 'mis-eventos-auth'
 
 interface AuthState {
@@ -48,7 +53,13 @@ export const useAuthStore = create<AuthState>()(
           token: null,
           user: null,
           isAuthenticated: false,
+          isLoading: false,
         })
+        try {
+          localStorage.removeItem(AUTH_STORAGE_KEY)
+        } catch {
+          // ignore — private browsing
+        }
       },
 
       hydrate: async () => {
@@ -69,8 +80,21 @@ export const useAuthStore = create<AuthState>()(
       name: AUTH_STORAGE_KEY,
       partialize: (state) => ({
         token: state.token,
-        isAuthenticated: !!state.token,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.token) {
+          state.isAuthenticated = true
+        }
+      },
     },
   ),
 )
+
+/** Clears persisted session from localStorage */
+export function clearAuthStorage(): void {
+  try {
+    localStorage.removeItem(AUTH_STORAGE_KEY)
+  } catch {
+    // Storage may be unavailable in private mode
+  }
+}

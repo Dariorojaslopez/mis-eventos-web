@@ -135,7 +135,19 @@ src/
 
 ---
 
-## Backend
+## Seguridad (auth)
+
+Documentación completa: [`docs/security/AUTH.md`](docs/security/AUTH.md)
+
+- HTTPS/TLS en Vercel + Render (sin cifrado manual en frontend)
+- Contraseñas solo en memoria durante submit — nunca en storage ni logs
+- Mensajes genéricos en login/register (anti-enumeración)
+- Sanitización de errores backend antes de mostrar en UI
+- JWT con logout que limpia `localStorage`
+- Interceptor 401 sin loops en rutas de auth
+- Password UX: toggle, checklist, caracteres especiales permitidos
+
+---
 
 - **URL**: https://mis-eventos-api-3625.onrender.com
 - **Swagger**: https://mis-eventos-api-3625.onrender.com/docs

@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { AIDescriptionField } from '@/components/ai/AIDescriptionField'
+import { CapacityWidget } from '@/components/forms/CapacityWidget'
+import { DateTimeWidget } from '@/components/forms/DateTimeWidget'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,6 +28,7 @@ export function CreateEventPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     watch,
@@ -45,6 +48,7 @@ export function CreateEventPage() {
   const title = watch('title')
   const location = watch('location')
   const description = watch('description')
+  const startDate = watch('start_date')
 
   const handleDescriptionChange = useCallback(
     (v: string) => setValue('description', v, { shouldValidate: true, shouldDirty: true }),
@@ -133,34 +137,47 @@ export function CreateEventPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="start_date">Inicio</Label>
-                <Input id="start_date" type="datetime-local" {...register('start_date')} />
-                {errors.start_date && (
-                  <p className="text-xs text-destructive">{errors.start_date.message}</p>
+              <Controller
+                name="start_date"
+                control={control}
+                render={({ field }) => (
+                  <DateTimeWidget
+                    id="start_date"
+                    label="Inicio"
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={errors.start_date?.message}
+                  />
                 )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="end_date">Fin</Label>
-                <Input id="end_date" type="datetime-local" {...register('end_date')} />
-                {errors.end_date && (
-                  <p className="text-xs text-destructive">{errors.end_date.message}</p>
+              />
+              <Controller
+                name="end_date"
+                control={control}
+                render={({ field }) => (
+                  <DateTimeWidget
+                    id="end_date"
+                    label="Fin"
+                    value={field.value}
+                    onChange={field.onChange}
+                    min={startDate || undefined}
+                    error={errors.end_date?.message}
+                  />
                 )}
-              </div>
+              />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="max_capacity">Capacidad máxima</Label>
-              <Input
-                id="max_capacity"
-                type="number"
-                min={1}
-                {...register('max_capacity', { valueAsNumber: true })}
-              />
-              {errors.max_capacity && (
-                <p className="text-xs text-destructive">{errors.max_capacity.message}</p>
+            <Controller
+              name="max_capacity"
+              control={control}
+              render={({ field }) => (
+                <CapacityWidget
+                  id="max_capacity"
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.max_capacity?.message}
+                />
               )}
-            </div>
+            />
 
             <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
               {isSubmitting ? (

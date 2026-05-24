@@ -4,6 +4,7 @@ import {
   Calendar,
   Loader2,
   MapPin,
+  Plus,
   Ticket,
   Users,
   UserCog,
@@ -13,23 +14,26 @@ import { Link, useParams } from 'react-router-dom'
 import { AttendeesList, AttendeesPlaceholder } from '@/components/events/AttendeesList'
 import { EventStatusBadge } from '@/components/events/EventStatusBadge'
 import { SessionTimeline } from '@/components/events/SessionTimeline'
+import { DeleteSessionDialog } from '@/components/sessions/DeleteSessionDialog'
+import { SessionFormDialog } from '@/components/sessions/SessionFormDialog'
 import { DetailSkeleton } from '@/components/LoadingSkeleton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useEventDetail } from '@/hooks/useEventDetail'
-import { getRegistrationErrorMessage } from '@/lib/errors'
+import { useEventSessions } from '@/hooks/useSessions'
+import { getErrorMessage, getRegistrationErrorMessage } from '@/lib/errors'
 import { notify } from '@/lib/toast'
 import { formatDateRange } from '@/lib/utils'
 import { registrationsService } from '@/services/registrations.service'
 import { useAuthStore } from '@/store/auth.store'
+import type { SessionRead } from '@/types/api.types'
 
 export function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>()
   const user = useAuthStore((s) => s.user)
   const {
     event,
-    sessions,
     attendees,
     isLoading,
     error,
@@ -37,9 +41,32 @@ export function EventDetailPage() {
     setIsRegistered,
     refetch,
   } = useEventDetail(eventId)
+  const {
+    data: sessions = [],
+    isLoading: sessionsLoading,
+    isError: sessionsError,
+    error: sessionsQueryError,
+  } = useEventSessions(eventId)
   const [actionLoading, setActionLoading] = useState(false)
+  const [sessionFormOpen, setSessionFormOpen] = useState(false)
+  const [editingSession, setEditingSession] = useState<SessionRead | null>(null)
+  const [deletingSession, setDeletingSession] = useState<SessionRead | null>(null)
 
   const isOrganizer = event && user?.id === event.organizer_id
+
+  const openCreateSession = () => {
+    setEditingSession(null)
+    setSessionFormOpen(true)
+  }
+
+  const openEditSession = (session: SessionRead) => {
+    setEditingSession(session)
+    setSessionFormOpen(true)
+  }
+
+  const openDeleteSession = (session: SessionRead) => {
+    setDeletingSession(session)
+  }
 
   const handleRegistration = async () => {
     if (!eventId) return
@@ -105,9 +132,15 @@ export function EventDetailPage() {
           </div>
 
           {isOrganizer ? (
-            <div className="flex shrink-0 items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
-              <UserCog className="h-5 w-5 shrink-0" />
-              <span>Eres el organizador de este evento</span>
+            <div className="max-w-xs shrink-0 space-y-1 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
+              <div className="flex items-center gap-2 font-medium">
+                <UserCog className="h-5 w-5 shrink-0" />
+                <span>Eres el organizador</span>
+              </div>
+              <p className="text-xs leading-relaxed text-primary/80">
+                No puedes inscribirte en tu propio evento. Para probar inscripciones, entra con
+                otra cuenta o explora eventos de otros organizadores.
+              </p>
             </div>
           ) : (
             <Button
@@ -174,9 +207,51 @@ export function EventDetailPage() {
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Agenda · {sessions.length} sesiones</h2>
-        <SessionTimeline sessions={sessions} />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold">
+            Agenda
+            {!sessionsLoading && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                · {sessions.length} {sessions.length === 1 ? 'sesión' : 'sesiones'}
+              </span>
+            )}
+          </h2>
+          {isOrganizer && eventId && (
+            <Button size="sm" className="gap-1.5 shadow-sm" onClick={openCreateSession}>
+              <Plus className="h-4 w-4" />
+              Agregar sesión
+            </Button>
+          )}
+        </div>
+        <SessionTimeline
+          sessions={sessions}
+          isLoading={sessionsLoading}
+          isError={sessionsError}
+          errorMessage={getErrorMessage(sessionsQueryError, 'Error al cargar sesiones')}
+          canManage={!!isOrganizer}
+          onEdit={openEditSession}
+          onDelete={openDeleteSession}
+        />
       </section>
+
+      {eventId && (
+        <>
+          <SessionFormDialog
+            eventId={eventId}
+            open={sessionFormOpen}
+            onOpenChange={setSessionFormOpen}
+            session={editingSession}
+          />
+          <DeleteSessionDialog
+            eventId={eventId}
+            session={deletingSession}
+            open={!!deletingSession}
+            onOpenChange={(open) => {
+              if (!open) setDeletingSession(null)
+            }}
+          />
+        </>
+      )}
 
       <Separator />
 

@@ -1,6 +1,8 @@
+import { QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { queryClient } from '@/lib/query-client'
 import { AppRoutes } from '@/routes'
 import { useAuthStore } from '@/store/auth.store'
 import { useThemeStore } from '@/store/theme.store'
@@ -32,22 +34,24 @@ function ThemeInitializer({ children }: { children: React.ReactNode }) {
 export function AppProviders() {
   return (
     <ErrorBoundary>
-      <ThemeInitializer>
-        <AuthInitializer>
-          <AppRoutes />
-          <Toaster
-            richColors
-            closeButton
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              classNames: {
-                toast: 'border border-border shadow-lg backdrop-blur-sm',
-              },
-            }}
-          />
-        </AuthInitializer>
-      </ThemeInitializer>
+      <QueryClientProvider client={queryClient}>
+        <ThemeInitializer>
+          <AuthInitializer>
+            <AppRoutes />
+            <Toaster
+              richColors
+              closeButton
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                classNames: {
+                  toast: 'border border-border shadow-lg backdrop-blur-sm',
+                },
+              }}
+            />
+          </AuthInitializer>
+        </ThemeInitializer>
+      </QueryClientProvider>
     </ErrorBoundary>
   )
 }

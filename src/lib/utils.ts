@@ -16,6 +16,25 @@ export function formatDateRange(start: string, end: string): string {
   return `${formatDate(start)} — ${formatDate(end)}`
 }
 
+export function formatTime(iso: string): string {
+  return new Intl.DateTimeFormat('es-CO', { timeStyle: 'short' }).format(new Date(iso))
+}
+
+export function formatDateLabel(iso: string): string {
+  return new Intl.DateTimeFormat('es-CO', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(iso))
+}
+
+export function getDateKey(iso: string): string {
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 /** Convierte valor de input datetime-local a ISO UTC */
 export function localDateTimeToIso(value: string): string {
   return new Date(value).toISOString()

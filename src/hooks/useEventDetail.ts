@@ -2,12 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { getErrorMessage } from '@/lib/errors'
 import { eventsService } from '@/services/events.service'
 import { registrationsService } from '@/services/registrations.service'
-import { sessionsService } from '@/services/sessions.service'
-import type { AttendeeRead, EventRead, SessionRead } from '@/types/api.types'
+import type { AttendeeRead, EventRead } from '@/types/api.types'
 
 export function useEventDetail(eventId: string | undefined) {
   const [event, setEvent] = useState<EventRead | null>(null)
-  const [sessions, setSessions] = useState<SessionRead[]>([])
   const [attendees, setAttendees] = useState<AttendeeRead[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -20,14 +18,12 @@ export function useEventDetail(eventId: string | undefined) {
     setError(null)
 
     try {
-      const [eventData, sessionsData, myEvents] = await Promise.all([
+      const [eventData, myEvents] = await Promise.all([
         eventsService.getById(eventId),
-        sessionsService.listByEvent(eventId),
         registrationsService.listMyEvents().catch(() => []),
       ])
 
       setEvent(eventData)
-      setSessions(sessionsData)
       setIsRegistered(
         myEvents.some(
           (r) => r.event_id === eventId && r.registration_status === 'registered',
@@ -53,7 +49,6 @@ export function useEventDetail(eventId: string | undefined) {
 
   return {
     event,
-    sessions,
     attendees,
     isLoading,
     error,

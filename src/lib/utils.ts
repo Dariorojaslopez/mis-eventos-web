@@ -66,3 +66,20 @@ export function formatDateTimeLocalDisplay(value: string): {
   }
 }
 
+/** Fin debe ser estrictamente posterior al inicio */
+export function isEndAfterStart(start: string, end: string): boolean {
+  if (!start || !end) return true
+  const startMs = new Date(start).getTime()
+  const endMs = new Date(end).getTime()
+  if (Number.isNaN(startMs) || Number.isNaN(endMs)) return true
+  return endMs > startMs
+}
+
+/** Hora mínima para fin cuando es el mismo día que inicio */
+export function getMinTimeForEndDate(startDateTime: string, endDate: string): string | undefined {
+  if (!startDateTime || !endDate) return undefined
+  const start = splitDateTimeLocal(startDateTime)
+  if (start.date !== endDate) return undefined
+  return start.time
+}
+

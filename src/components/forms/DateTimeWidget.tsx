@@ -5,6 +5,8 @@ import {
   cn,
   combineDateTimeLocal,
   formatDateTimeLocalDisplay,
+  getMinTimeForEndDate,
+  isEndAfterStart,
   splitDateTimeLocal,
 } from '@/lib/utils'
 
@@ -14,7 +16,8 @@ interface DateTimeWidgetProps {
   value: string
   onChange: (value: string) => void
   error?: string
-  min?: string
+  /** datetime-local mínimo — usado en campo Fin (inicio del evento) */
+  minDateTime?: string
 }
 
 export function DateTimeWidget({
@@ -23,14 +26,21 @@ export function DateTimeWidget({
   value,
   onChange,
   error,
-  min,
+  minDateTime,
 }: DateTimeWidgetProps) {
   const dateRef = useRef<HTMLInputElement>(null)
   const timeRef = useRef<HTMLInputElement>(null)
 
   const { date, time } = splitDateTimeLocal(value)
   const { dateLabel, timeLabel } = formatDateTimeLocalDisplay(value)
-  const minDate = min ? splitDateTimeLocal(min).date : undefined
+  const minDate = minDateTime ? splitDateTimeLocal(minDateTime).date : undefined
+  const minTime = minDateTime ? getMinTimeForEndDate(minDateTime, date) : undefined
+
+  const rangeError =
+    minDateTime && value && !isEndAfterStart(minDateTime, value)
+      ? 'Debe ser posterior al inicio'
+      : undefined
+  const displayError = error ?? rangeError
 
   const update = (nextDate: string, nextTime: string) => {
     onChange(combineDateTimeLocal(nextDate, nextTime))
@@ -54,24 +64,24 @@ export function DateTimeWidget({
     <div className="space-y-2">
       <Label htmlFor={`${id}-date`}>{label}</Label>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={openDatePicker}
           className={cn(
-            'relative flex min-h-[72px] items-center gap-3 rounded-xl border border-border/80 bg-muted/20 p-3',
+            'relative flex min-h-[72px] flex-col justify-center gap-1 rounded-xl border border-border/80 bg-muted/20 p-2.5 sm:flex-row sm:items-center sm:gap-3 sm:p-3',
             'text-left transition-all active:scale-[0.98] hover:border-primary/40 hover:bg-muted/40',
-            error && 'border-destructive/50',
+            displayError && 'border-destructive/50',
           )}
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Calendar className="h-5 w-5" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:h-10 sm:w-10">
+            <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               Fecha
             </p>
-            <p className="truncate text-sm font-semibold">{dateLabel}</p>
+            <p className="truncate text-xs font-semibold sm:text-sm">{dateLabel}</p>
           </div>
           <input
             ref={dateRef}
@@ -91,26 +101,27 @@ export function DateTimeWidget({
           onClick={openTimePicker}
           disabled={!date}
           className={cn(
-            'relative flex min-h-[72px] items-center gap-3 rounded-xl border border-border/80 bg-muted/20 p-3',
+            'relative flex min-h-[72px] flex-col justify-center gap-1 rounded-xl border border-border/80 bg-muted/20 p-2.5 sm:flex-row sm:items-center sm:gap-3 sm:p-3',
             'text-left transition-all active:scale-[0.98] hover:border-primary/40 hover:bg-muted/40',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-destructive/50',
+            displayError && 'border-destructive/50',
           )}
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Clock className="h-5 w-5" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:h-10 sm:w-10">
+            <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               Hora
             </p>
-            <p className="truncate text-sm font-semibold">{timeLabel}</p>
+            <p className="truncate text-xs font-semibold sm:text-sm">{timeLabel}</p>
           </div>
           <input
             ref={timeRef}
             id={`${id}-time`}
             type="time"
             value={time}
+            min={minTime}
             onChange={(e) => update(date, e.target.value)}
             className="pointer-events-none absolute inset-0 opacity-0"
             tabIndex={-1}
@@ -120,7 +131,7 @@ export function DateTimeWidget({
         </button>
       </div>
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {displayError && <p className="text-xs text-destructive">{displayError}</p>}
     </div>
   )
 }

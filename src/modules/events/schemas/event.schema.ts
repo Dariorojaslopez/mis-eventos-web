@@ -10,7 +10,7 @@ export const createEventSchema = z
     max_capacity: z.number().int().positive('Capacidad debe ser mayor a 0'),
   })
   .refine((data) => new Date(data.end_date) > new Date(data.start_date), {
-    message: 'La fecha de fin debe ser posterior a la de inicio',
+    message: 'La fecha y hora de fin deben ser posteriores al inicio',
     path: ['end_date'],
   })
 

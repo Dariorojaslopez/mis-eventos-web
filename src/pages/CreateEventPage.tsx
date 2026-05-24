@@ -4,12 +4,13 @@ import { useCallback, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { AIDescriptionField } from '@/components/ai/AIDescriptionField'
+import { LocationPicker } from '@/components/forms/LocationPicker'
 import { CapacityWidget } from '@/components/forms/CapacityWidget'
 import { DateTimeWidget } from '@/components/forms/DateTimeWidget'
-import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { PageHeader } from '@/components/PageHeader'
 import { Label } from '@/components/ui/label'
 import { useGenerateDescription } from '@/hooks/useGenerateDescription'
 import { getErrorMessage } from '@/lib/errors'
@@ -35,6 +36,7 @@ export function CreateEventPage() {
     formState: { errors, isSubmitting },
   } = useForm<CreateEventFormValues>({
     resolver: zodResolver(createEventSchema),
+    mode: 'onChange',
     defaultValues: {
       title: '',
       description: '',
@@ -124,19 +126,19 @@ export function CreateEventPage() {
               error={errors.description?.message}
             />
 
-            <div className="space-y-2">
-              <Label htmlFor="location">Ubicación</Label>
-              <Input
-                id="location"
-                placeholder="Bogotá — Centro de Convenciones"
-                {...register('location')}
-              />
-              {errors.location && (
-                <p className="text-xs text-destructive">{errors.location.message}</p>
+            <Controller
+              name="location"
+              control={control}
+              render={({ field }) => (
+                <LocationPicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.location?.message}
+                />
               )}
-            </div>
+            />
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-4">
               <Controller
                 name="start_date"
                 control={control}
@@ -159,7 +161,7 @@ export function CreateEventPage() {
                     label="Fin"
                     value={field.value}
                     onChange={field.onChange}
-                    min={startDate || undefined}
+                    minDateTime={startDate || undefined}
                     error={errors.end_date?.message}
                   />
                 )}

@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { sessionStatusLabels } from '@/lib/status-labels'
 import { formatDateLabel, formatTime, getDateKey } from '@/lib/utils'
 import type { SessionRead } from '@/types/api.types'
 
@@ -147,8 +148,8 @@ export function SessionTimeline({
 
                     <div className="flex flex-wrap items-center gap-2">
                       <CapacityBadge session={session} />
-                      <Badge variant="outline" className="capitalize">
-                        {session.status.replace('_', ' ')}
+                      <Badge variant="outline">
+                        {sessionStatusLabels[session.status]}
                       </Badge>
                     </div>
                   </div>

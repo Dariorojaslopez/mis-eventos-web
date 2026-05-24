@@ -238,6 +238,9 @@ export function EventDetailPage() {
         <>
           <SessionFormDialog
             eventId={eventId}
+            eventStartDate={event.start_date}
+            eventEndDate={event.end_date}
+            existingSessions={sessions}
             open={sessionFormOpen}
             onOpenChange={setSessionFormOpen}
             session={editingSession}

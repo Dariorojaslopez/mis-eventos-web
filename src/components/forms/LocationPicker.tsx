@@ -181,7 +181,7 @@ export function LocationPicker({
         </Suspense>
 
         <div className="pointer-events-none absolute bottom-2 left-2 right-2 rounded-lg bg-background/90 px-3 py-2 text-center text-[11px] text-muted-foreground backdrop-blur sm:text-xs">
-          Toca el mapa para fijar la ubicación · Busca arriba como en Google Maps
+          Toca el mapa para fijar la ubicación · Busca arriba como en un mapa
         </div>
       </div>
 

@@ -39,7 +39,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </div>
             <div>
               <p className="text-sm font-semibold">Mis Eventos</p>
-              <p className="text-xs text-muted-foreground">Enterprise</p>
+              <p className="text-xs text-muted-foreground">Plataforma</p>
             </div>
           </div>
           {onClose && (

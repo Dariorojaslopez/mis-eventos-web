@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { CapacityWidget } from '@/components/forms/CapacityWidget'
 import { DateTimeWidget } from '@/components/forms/DateTimeWidget'
@@ -17,8 +17,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useCreateSession, useUpdateSession } from '@/hooks/useSessions'
+import { formatDateRange, isoToLocalDateTime } from '@/lib/utils'
 import {
-  sessionFormSchema,
+  createSessionFormSchema,
   type SessionFormValues,
 } from '@/modules/sessions/session.schema'
 import type { SessionRead } from '@/types/api.types'
@@ -26,6 +27,9 @@ import { sessionToFormValues } from '@/types/sessions.types'
 
 interface SessionFormDialogProps {
   eventId: string
+  eventStartDate: string
+  eventEndDate: string
+  existingSessions: SessionRead[]
   open: boolean
   onOpenChange: (open: boolean) => void
   session?: SessionRead | null
@@ -43,6 +47,9 @@ const emptyDefaults: SessionFormValues = {
 
 export function SessionFormDialog({
   eventId,
+  eventStartDate,
+  eventEndDate,
+  existingSessions,
   open,
   onOpenChange,
   session,
@@ -52,15 +59,30 @@ export function SessionFormDialog({
   const updateMutation = useUpdateSession(eventId)
   const isPending = createMutation.isPending || updateMutation.isPending
 
+  const eventStartLocal = isoToLocalDateTime(eventStartDate)
+  const eventEndLocal = isoToLocalDateTime(eventEndDate)
+
+  const schema = useMemo(
+    () =>
+      createSessionFormSchema({
+        eventStartDate,
+        eventEndDate,
+        existingSessions,
+        excludeSessionId: session?.id,
+      }),
+    [eventStartDate, eventEndDate, existingSessions, session?.id],
+  )
+
   const {
     register,
     control,
     handleSubmit,
     reset,
     watch,
+    trigger,
     formState: { errors },
   } = useForm<SessionFormValues>({
-    resolver: zodResolver(sessionFormSchema),
+    resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: emptyDefaults,
   })
@@ -71,6 +93,11 @@ export function SessionFormDialog({
     if (!open) return
     reset(session ? sessionToFormValues(session) : emptyDefaults)
   }, [open, session, reset])
+
+  useEffect(() => {
+    if (!open) return
+    void trigger(['start_time', 'end_time'])
+  }, [schema, open, trigger])
 
   const onSubmit = async (values: SessionFormValues) => {
     if (isEdit && session) {
@@ -89,7 +116,8 @@ export function SessionFormDialog({
           <DialogDescription>
             {isEdit
               ? 'Actualiza los detalles de esta sesión en la agenda.'
-              : 'Programa una nueva sesión para el evento.'}
+              : 'Programa una nueva sesión para el evento.'}{' '}
+            Horario permitido: {formatDateRange(eventStartDate, eventEndDate)}.
           </DialogDescription>
         </DialogHeader>
 
@@ -121,7 +149,7 @@ export function SessionFormDialog({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="session-speaker">Speaker</Label>
+              <Label htmlFor="session-speaker">Ponente</Label>
               <Input
                 id="session-speaker"
                 placeholder="Nombre del ponente"
@@ -150,6 +178,8 @@ export function SessionFormDialog({
                 label="Inicio"
                 value={field.value}
                 onChange={field.onChange}
+                minDateTime={eventStartLocal}
+                maxDateTime={eventEndLocal}
                 error={errors.start_time?.message}
               />
             )}
@@ -164,7 +194,9 @@ export function SessionFormDialog({
                 label="Fin"
                 value={field.value}
                 onChange={field.onChange}
-                minDateTime={startTime}
+                minDateTime={startTime || eventStartLocal}
+                maxDateTime={eventEndLocal}
+                strictMin
                 error={errors.end_time?.message}
               />
             )}

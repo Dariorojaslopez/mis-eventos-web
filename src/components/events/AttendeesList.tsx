@@ -1,6 +1,7 @@
 import { UserCircle2, Users } from 'lucide-react'
 import { EmptyState } from '@/components/EmptyState'
 import { Badge } from '@/components/ui/badge'
+import { registrationStatusLabels } from '@/lib/status-labels'
 import type { AttendeeRead } from '@/types/api.types'
 
 interface AttendeesListProps {
@@ -45,8 +46,8 @@ export function AttendeesList({ attendees, isOrganizerView }: AttendeesListProps
             <p className="truncate font-medium text-sm">{attendee.full_name}</p>
             <p className="truncate text-xs text-muted-foreground">{attendee.email}</p>
           </div>
-          <Badge variant="secondary" className="shrink-0 capitalize">
-            {attendee.registration_status}
+          <Badge variant="secondary" className="shrink-0">
+            {registrationStatusLabels[attendee.registration_status]}
           </Badge>
         </div>
       ))}

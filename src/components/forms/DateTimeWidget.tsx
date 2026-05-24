@@ -5,8 +5,8 @@ import {
   cn,
   combineDateTimeLocal,
   formatDateTimeLocalDisplay,
+  getMaxTimeForDate,
   getMinTimeForEndDate,
-  isEndAfterStart,
   splitDateTimeLocal,
 } from '@/lib/utils'
 
@@ -16,8 +16,12 @@ interface DateTimeWidgetProps {
   value: string
   onChange: (value: string) => void
   error?: string
-  /** datetime-local mínimo — usado en campo Fin (inicio del evento) */
+  /** datetime-local mínimo */
   minDateTime?: string
+  /** datetime-local máximo */
+  maxDateTime?: string
+  /** Si true, el valor debe ser estrictamente posterior a minDateTime */
+  strictMin?: boolean
 }
 
 export function DateTimeWidget({
@@ -27,6 +31,8 @@ export function DateTimeWidget({
   onChange,
   error,
   minDateTime,
+  maxDateTime,
+  strictMin = false,
 }: DateTimeWidgetProps) {
   const dateRef = useRef<HTMLInputElement>(null)
   const timeRef = useRef<HTMLInputElement>(null)
@@ -34,11 +40,36 @@ export function DateTimeWidget({
   const { date, time } = splitDateTimeLocal(value)
   const { dateLabel, timeLabel } = formatDateTimeLocalDisplay(value)
   const minDate = minDateTime ? splitDateTimeLocal(minDateTime).date : undefined
+  const maxDate = maxDateTime ? splitDateTimeLocal(maxDateTime).date : undefined
   const minTime = minDateTime ? getMinTimeForEndDate(minDateTime, date) : undefined
+  const maxTime = maxDateTime ? getMaxTimeForDate(maxDateTime, date) : undefined
 
-  const rangeError =
-    minDateTime && value && !isEndAfterStart(minDateTime, value)
+  const isBelowMin =
+    minDateTime &&
+    value &&
+    (() => {
+      const minMs = new Date(minDateTime).getTime()
+      const valMs = new Date(value).getTime()
+      if (Number.isNaN(minMs) || Number.isNaN(valMs)) return false
+      return strictMin ? valMs <= minMs : valMs < minMs
+    })()
+
+  const isAboveMax =
+    maxDateTime &&
+    value &&
+    (() => {
+      const maxMs = new Date(maxDateTime).getTime()
+      const valMs = new Date(value).getTime()
+      if (Number.isNaN(maxMs) || Number.isNaN(valMs)) return false
+      return valMs > maxMs
+    })()
+
+  const rangeError = isBelowMin
+    ? strictMin
       ? 'Debe ser posterior al inicio'
+      : 'Fuera del rango del evento'
+    : isAboveMax
+      ? 'Fuera del rango del evento'
       : undefined
   const displayError = error ?? rangeError
 
@@ -89,6 +120,7 @@ export function DateTimeWidget({
             type="date"
             value={date}
             min={minDate}
+            max={maxDate}
             onChange={(e) => update(e.target.value, time)}
             className="pointer-events-none absolute inset-0 opacity-0"
             tabIndex={-1}
@@ -122,6 +154,7 @@ export function DateTimeWidget({
             type="time"
             value={time}
             min={minTime}
+            max={maxTime}
             onChange={(e) => update(date, e.target.value)}
             className="pointer-events-none absolute inset-0 opacity-0"
             tabIndex={-1}

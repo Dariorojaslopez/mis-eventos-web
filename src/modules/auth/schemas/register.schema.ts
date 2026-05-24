@@ -25,7 +25,7 @@ export const registerSchema = z
       .string()
       .min(2, 'Mínimo 2 caracteres')
       .max(255, 'Máximo 255 caracteres'),
-    email: z.email('Email inválido'),
+    email: z.email('Correo electrónico inválido'),
     password: passwordSchema,
     confirm_password: z.string().min(1, 'Confirma tu contraseña'),
   })

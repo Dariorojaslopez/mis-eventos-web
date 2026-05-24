@@ -102,3 +102,40 @@ export function getMinTimeForEndDate(startDateTime: string, endDate: string): st
   return start.time
 }
 
+/** Hora máxima cuando la fecha seleccionada coincide con el tope */
+export function getMaxTimeForDate(maxDateTime: string, selectedDate: string): string | undefined {
+  if (!maxDateTime || !selectedDate) return undefined
+  const max = splitDateTimeLocal(maxDateTime)
+  if (max.date !== selectedDate) return undefined
+  return max.time
+}
+
+/** Comprueba si un intervalo está dentro de otro (inclusive) */
+export function isWithinDateTimeRange(
+  value: string,
+  minIso: string,
+  maxIso: string,
+): boolean {
+  if (!value) return true
+  const ms = new Date(value).getTime()
+  const minMs = new Date(minIso).getTime()
+  const maxMs = new Date(maxIso).getTime()
+  if (Number.isNaN(ms) || Number.isNaN(minMs) || Number.isNaN(maxMs)) return true
+  return ms >= minMs && ms <= maxMs
+}
+
+/** Dos intervalos se solapan si comparten tiempo (límites contiguos permitidos) */
+export function doTimeRangesOverlap(
+  startA: string,
+  endA: string,
+  startB: string,
+  endB: string,
+): boolean {
+  const aStart = new Date(startA).getTime()
+  const aEnd = new Date(endA).getTime()
+  const bStart = new Date(startB).getTime()
+  const bEnd = new Date(endB).getTime()
+  if ([aStart, aEnd, bStart, bEnd].some(Number.isNaN)) return false
+  return aStart < bEnd && bStart < aEnd
+}
+

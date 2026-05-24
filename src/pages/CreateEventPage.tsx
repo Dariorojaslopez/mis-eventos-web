@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowLeft, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { AIDescriptionField } from '@/components/ai/AIDescriptionField'
@@ -45,6 +45,15 @@ export function CreateEventPage() {
   const title = watch('title')
   const location = watch('location')
   const description = watch('description')
+
+  const handleDescriptionChange = useCallback(
+    (v: string) => setValue('description', v, { shouldValidate: true, shouldDirty: true }),
+    [setValue],
+  )
+
+  const handleStreamingComplete = useCallback(() => {
+    setStreamingText(null)
+  }, [])
 
   const handleGenerateAI = async () => {
     setStreamingText(null)
@@ -102,8 +111,9 @@ export function CreateEventPage() {
 
             <AIDescriptionField
               value={description}
-              onChange={(v) => setValue('description', v, { shouldValidate: true, shouldDirty: true })}
+              onChange={handleDescriptionChange}
               streamingText={streamingText}
+              onStreamingComplete={handleStreamingComplete}
               onGenerate={() => void handleGenerateAI()}
               isGenerating={isGenerating}
               canGenerate={!!title && title.length >= 3}

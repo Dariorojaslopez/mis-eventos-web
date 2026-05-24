@@ -7,8 +7,24 @@ export interface ApiValidationError {
   type: string
 }
 
+export interface ApiErrorEnvelope {
+  code: string
+  message: string
+}
+
 export interface ApiErrorBody {
   detail?: string | ApiValidationError[]
+  error?: ApiErrorEnvelope
+}
+
+/** Mensajes UX en español para códigos de error del backend enterprise */
+const API_ERROR_MESSAGES_ES: Record<string, string> = {
+  organizer_self_registration: 'Como organizador no puedes inscribirte en tu propio evento.',
+  already_registered: 'Ya tienes una inscripción activa en este evento.',
+  event_full: 'No hay cupos disponibles en este evento.',
+  event_not_published: 'Este evento aún no acepta inscripciones.',
+  event_cancelled: 'Este evento fue cancelado.',
+  registration_closed: 'Las inscripciones están cerradas.',
 }
 
 /** Safe validation messages allowed in UI (field-level, non-sensitive) */
@@ -34,6 +50,10 @@ const SAFE_VALIDATION_HINTS = [
   'location',
   'descripción',
   'description',
+  'cupo',
+  'inscrip',
+  'evento',
+  'organizador',
 ]
 
 function isSafeValidationMessage(msg: string): boolean {
@@ -51,6 +71,19 @@ function extractValidationMessages(detail: ApiValidationError[]): string | null 
   return safe.join('. ')
 }
 
+function extractEnvelopeMessage(data: ApiErrorBody | undefined): string | null {
+  if (!data?.error?.code) return null
+
+  const mapped = API_ERROR_MESSAGES_ES[data.error.code]
+  if (mapped) return mapped
+
+  if (data.error.message) {
+    return sanitizeErrorMessage(data.error.message)
+  }
+
+  return null
+}
+
 export function getErrorMessage(
   error: unknown,
   fallback = 'Ocurrió un error inesperado. Inténtalo de nuevo.',
@@ -58,7 +91,12 @@ export function getErrorMessage(
   if (!error) return fallback
 
   const axiosError = error as AxiosError<ApiErrorBody>
-  const detail = axiosError.response?.data?.detail
+  const data = axiosError.response?.data
+
+  const envelopeMsg = extractEnvelopeMessage(data)
+  if (envelopeMsg) return envelopeMsg
+
+  const detail = data?.detail
 
   if (typeof detail === 'string') {
     return sanitizeErrorMessage(detail, fallback)
@@ -72,9 +110,14 @@ export function getErrorMessage(
     return fallback
   }
 
-  if (error instanceof Error && error.message) {
+  // Nunca mostrar mensajes técnicos de Axios ("Request failed with status code 409")
+  if (error instanceof Error && error.message && !error.message.includes('status code')) {
     return sanitizeErrorMessage(error.message, fallback)
   }
 
   return fallback
+}
+
+export function getRegistrationErrorMessage(error: unknown): string {
+  return getErrorMessage(error, 'No se pudo completar la inscripción. Inténtalo de nuevo.')
 }

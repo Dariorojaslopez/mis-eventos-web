@@ -6,6 +6,7 @@ import {
   MapPin,
   Ticket,
   Users,
+  UserCog,
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -17,7 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useEventDetail } from '@/hooks/useEventDetail'
-import { getErrorMessage } from '@/lib/errors'
+import { getRegistrationErrorMessage } from '@/lib/errors'
 import { notify } from '@/lib/toast'
 import { formatDateRange } from '@/lib/utils'
 import { registrationsService } from '@/services/registrations.service'
@@ -56,7 +57,7 @@ export function EventDetailPage() {
       }
       await refetch()
     } catch (err) {
-      notify.error('Acción no disponible', getErrorMessage(err, 'No se pudo completar'))
+      notify.error('Inscripción no disponible', getRegistrationErrorMessage(err))
     } finally {
       setActionLoading(false)
     }
@@ -79,7 +80,8 @@ export function EventDetailPage() {
     )
   }
 
-  const canRegister = event.status === 'published' && event.available_slots > 0
+  const canRegister =
+    !isOrganizer && event.status === 'published' && event.available_slots > 0
   const occupancy = Math.round(
     ((event.max_capacity - event.available_slots) / event.max_capacity) * 100,
   )
@@ -102,20 +104,31 @@ export function EventDetailPage() {
             <p className="max-w-2xl text-muted-foreground leading-relaxed">{event.description}</p>
           </div>
 
-          <Button
-            size="lg"
-            variant={isRegistered ? 'outline' : 'default'}
-            className="shrink-0 shadow-md"
-            disabled={actionLoading || (!isRegistered && !canRegister)}
-            onClick={() => void handleRegistration()}
-          >
-            {actionLoading ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              <Ticket />
-            )}
-            {isRegistered ? 'Cancelar inscripción' : canRegister ? 'Inscribirme ahora' : 'Sin cupos'}
-          </Button>
+          {isOrganizer ? (
+            <div className="flex shrink-0 items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
+              <UserCog className="h-5 w-5 shrink-0" />
+              <span>Eres el organizador de este evento</span>
+            </div>
+          ) : (
+            <Button
+              size="lg"
+              variant={isRegistered ? 'outline' : 'default'}
+              className="shrink-0 shadow-md"
+              disabled={actionLoading || (!isRegistered && !canRegister)}
+              onClick={() => void handleRegistration()}
+            >
+              {actionLoading ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <Ticket />
+              )}
+              {isRegistered
+                ? 'Cancelar inscripción'
+                : canRegister
+                  ? 'Inscribirme ahora'
+                  : 'Sin cupos'}
+            </Button>
+          )}
         </div>
       </div>
 

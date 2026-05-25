@@ -1,7 +1,7 @@
 # Mis Eventos — Frontend
 
 <p align="center">
-  <img src="docs/screenshots/Tablero.jpg" alt="Vista del tablero de eventos" width="720" />
+  <img src="https://mis-eventos-web.vercel.app/screenshots/Tablero.jpg" alt="Vista del tablero de eventos" width="720" />
 </p>
 
 <p align="center">
@@ -59,7 +59,7 @@ La aplicación consume una **API FastAPI real** desplegada en Render — sin moc
 
 | Entorno | URL | Descripción |
 |---------|-----|-------------|
-| **Frontend** | [https://mis-eventos-web.vercel.app/](https://mis-eventos-web.vercel.app/) | Aplicación React en producción |
+| **Frontend** | [https://mis-eventos-web.vercel.app/](https://mis-eventos-web.vercel.app/) | Aplicación React en producción |                         
 | **Backend Swagger** | [https://mis-eventos-api-3625.onrender.com/docs](https://mis-eventos-api-3625.onrender.com/docs) | Documentación interactiva OpenAPI |
 | **API base** | `https://mis-eventos-api-3625.onrender.com` | REST API FastAPI + JWT |
 
@@ -222,7 +222,7 @@ Galería con capturas reales del producto en producción/desarrollo.
 ### Inicio de sesión
 
 <p align="center">
-  <img src="docs/screenshots/Logeo.jpg" alt="Pantalla de inicio de sesión" width="720" />
+  <img src="https://mis-eventos-web.vercel.app/screenshots/Logeo.jpg" alt="Pantalla de inicio de sesión" width="720" />
 </p>
 
 <p align="center"><em>Login con validación, contraseña segura y diseño dark enterprise.</em></p>
@@ -232,7 +232,7 @@ Galería con capturas reales del producto en producción/desarrollo.
 ### Registro de usuario
 
 <p align="center">
-  <img src="docs/screenshots/Registro.jpg" alt="Pantalla de registro" width="720" />
+  <img src="https://mis-eventos-web.vercel.app/screenshots/Registro.jpg" alt="Pantalla de registro" width="720" />
 </p>
 
 <p align="center"><em>Registro con checklist de fortaleza de contraseña y mensajes en español.</em></p>
@@ -242,7 +242,7 @@ Galería con capturas reales del producto en producción/desarrollo.
 ### Tablero de eventos
 
 <p align="center">
-  <img src="docs/screenshots/Tablero.jpg" alt="Dashboard de eventos" width="720" />
+  <img src="https://mis-eventos-web.vercel.app/screenshots/Tablero.jpg" alt="Dashboard de eventos" width="720" />
 </p>
 
 <p align="center"><em>Dashboard con búsqueda, filtros, cards y métricas de ocupación.</em></p>
@@ -252,7 +252,7 @@ Galería con capturas reales del producto en producción/desarrollo.
 ### Creación de evento
 
 <p align="center">
-  <img src="docs/screenshots/Creacion_de_evento.jpg" alt="Formulario de creación de evento" width="720" />
+  <img src="https://mis-eventos-web.vercel.app/screenshots/Creacion_de_evento.jpg" alt="Formulario de creación de evento" width="720" />
 </p>
 
 <p align="center"><em>Crear evento con widgets móviles, mapa de ubicación e IA integrada.</em></p>
@@ -262,7 +262,7 @@ Galería con capturas reales del producto en producción/desarrollo.
 ### Mis inscripciones
 
 <p align="center">
-  <img src="docs/screenshots/Inscripciones.jpg" alt="Pantalla de inscripciones" width="720" />
+  <img src="https://mis-eventos-web.vercel.app/screenshots/Inscripciones.jpg" alt="Pantalla de inscripciones" width="720" />
 </p>
 
 <p align="center"><em>Gestión de inscripciones activas con cancelación y acceso al detalle.</em></p>
@@ -272,7 +272,7 @@ Galería con capturas reales del producto en producción/desarrollo.
 ### Agenda de sesiones
 
 <p align="center">
-  <img src="docs/screenshots/Agenda.jpg" alt="Agenda y timeline de sesiones" width="720" />
+  <img src="https://mis-eventos-web.vercel.app/screenshots/Agenda.jpg" alt="Agenda y timeline de sesiones" width="720" />
 </p>
 
 <p align="center"><em>Timeline de sesiones con agrupación por fecha, capacidad y acciones del organizador.</em></p>
